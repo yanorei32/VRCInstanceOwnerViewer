@@ -1,8 +1,8 @@
 // ==UserScript==
 // @name		VRChat Instance Owner Viewer
 // @description	VRChat Instance page improve (UserScript)
-// @version		0.1.0
-// @match		https://vrchat.com/home/launch?*
+// @version		0.2.0
+// @match		https://vrchat.com/home*
 // @website		https://github.com/Yanorei32/VRCInstanceOwnerViewer
 // @namespace	http://yano.teamfruit.net/~rei/
 // @updateURL	https://github.com/Yanorei32/VRCInstanceOwnerViewer/vrc-instance-owner-viewer.user.js
@@ -13,50 +13,221 @@
 (function() {
 	'use strict';
 
-	const apiKey = document.cookie.replace(/(?:(?:^|.*;\s*)apiKey\s*\=\s*([^;]*).*$)|^.*$/, '$1');
+	const DOM_POLLING_INTERVAL = 250;
+	const DOM_POLLING_RETRY = (1000/DOM_POLLING_INTERVAL)*5;
 
-	if (!apiKey) {
+	const APIKEY = document.cookie.replace(
+		/(?:(?:^|.*;\s*)apiKey\s*\=\s*([^;]*).*$)|^.*$/,
+		'$1',
+	);
+	if (!APIKEY) {
 		console.error("Need login");
 		return;
 	}
 
-	const userId = location.href.match(/usr_[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/g);
+	let dispNameCache = null;
+	const getDispName = (uid, cb) => {
+		dispNameCache = dispNameCache || JSON.parse(
+			localStorage.getItem('dispNameCache')
+		) || {};
 
-	if (userId == null) {
-		console.error("Maybe public instance");
-		return;
-	}
-
-	const xhr = new XMLHttpRequest();
-
-	xhr.addEventListener('load', () => {
-		if(xhr.status != 200) {
-			console.error(`API Responce: ${xhr.status}`);
+		if (dispNameCache[uid] !== undefined) {
+			cb(dispNameCache[uid]);
 			return;
 		}
 
-		const parsedResponse = JSON.parse(xhr.responseText);
-		const displayName = parsedResponse['displayName'];
+		const req = new XMLHttpRequest();
 
-		const watcher = setInterval(() => {
-			const t_ary = document.querySelectorAll('h2.card-title');
-			if (t_ary.length != 2) return;
-
-			for (const t of t_ary) {
-				const span = document.createElement('span');
-				const a = document.createElement('a');
-				a.textContent = displayName;
-				a.href = `https://vrchat.com/home/user/${userId}`;
-				span.textContent = ' - instanciate by ';
-				span.appendChild(a);
-				t.appendChild(span);
+		req.addEventListener('load', () => {
+			if (req.status != 200) {
+				console.error(`API Responce: ${req.status}`);
+				cb(`Err: ${req.status}`);
+				return;
 			}
 
-			clearInterval(watcher);
-		}, 250);
-	});
+			const resp = JSON.parse(req.responseText);
 
-	xhr.open('GET', `https://vrchat.com/api/1/users/${userId}?apiKey=${apiKey}`);
-	xhr.send();
+			dispNameCache[uid] = resp['displayName'];
+			localStorage.setItem('dispNameCache', JSON.stringify(dispNameCache));
+
+			cb(dispNameCache[uid]);
+		});
+
+		req.open('GET', `https://vrchat.com/api/1/users/${uid}?apiKey=${APIKEY}`);
+		req.send();
+	};
+
+	const getUid = (uri) => {
+		return uri.match(/usr_[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}/g);
+	};
+
+	const getUserPageURI = (uid) => {
+		return `https://vrchat.com/home/user/${uid}`;
+	};
+
+	const processedE = new WeakMap();
+
+	const processBlock = (e) => {
+		if (processedE.has(e)) return;
+		processedE.set(e);
+
+
+		const polling = setInterval(() => {
+			const locationTitleE = e.querySelector('h6.location-title');
+			if (!locationTitleE) return;
+			clearInterval(polling);
+			
+			const worldLinkE = locationTitleE.getElementsByTagName('a')[0];
+			const uid = getUid(worldLinkE.href);
+			if (!uid) return;
+
+			const spanE = document.createElement('span');
+			spanE.textContent = 'by ';
+
+			const aE = document.createElement('a');
+			aE.textContent = 'loading...';
+			aE.href = getUserPageURI(uid);
+
+			spanE.appendChild(aE);
+
+			locationTitleE.appendChild(spanE);
+
+			getDispName(uid, (dispName) => {
+				aE.textContent = dispName;
+			});
+		}, DOM_POLLING_INTERVAL);
+	};
+
+	const observeLocContE = (locContE) => {
+		const locsE = locContE.querySelector('div.locations');
+		if (!locsE) return;
+
+		for (const e of locsE.querySelectorAll('div.mb-1'))
+			processBlock(e);
+		
+		(new MutationObserver((records) => {
+			for (const record of records)
+				for (const addedNode of record.addedNodes)
+					if (addedNode.nodeType == Node.ELEMENT_NODE) {
+						for (const e of addedNode.querySelectorAll('div.mb-1'))
+							processBlock(e);
+
+						if (addedNode.classList.contains('mb-1'))
+							processBlock(addedNode);
+					}
+		})).observe(
+			locsE,
+			{ childList: true },
+		);
+	};
+
+	{
+		let retryCount = 0;
+		const polling = setInterval(() => {
+			const homeCE = document.querySelector('div.home-content');
+			if (!homeCE) {
+				if (DOM_POLLING_RETRY <= ++retryCount)
+					clearInterval(polling);
+				return;
+			}
+			clearInterval(polling);
+
+			{
+				let retryCount = 0;
+				const polling = setInterval(() => {
+					const locContE = homeCE.querySelector('div.location-container');
+					if (!locContE) {
+						if (DOM_POLLING_RETRY <= ++retryCount)
+							clearInterval(polling);
+						return;
+					}
+					observeLocContE(locContE);
+					clearInterval(polling);
+				}, DOM_POLLING_INTERVAL);
+			}
+
+
+			(new MutationObserver((records) => {
+				for (const record of records)
+					for (const addedNode of record.addedNodes)
+						if (addedNode.nodeType == Node.ELEMENT_NODE) {
+							const locContE = addedNode.querySelector('div.location-container');
+							if (!locContE) return;
+
+							observeLocContE(locContE);
+						}
+			})).observe(
+				homeCE,
+				{ childList: true },
+			);
+		}, DOM_POLLING_INTERVAL);
+	}
+
+	{
+		let retryCount = 0;
+		const polling = setInterval(() => {
+			const friendCE = document.querySelector('div.friend-container');
+			if (!friendCE) {
+				if (DOM_POLLING_RETRY <= ++retryCount)
+					clearInterval(polling);
+				return;
+			}
+			clearInterval(polling);
+
+			for (const e of friendCE.querySelectorAll('div.mb-1'))
+				processBlock(e);
+
+			(new MutationObserver((records) => {
+				for (const record of records)
+					for (const addedNode of record.addedNodes)
+						if (addedNode.nodeType == Node.ELEMENT_NODE) {
+							for (const e of addedNode.querySelectorAll('div.mb-1'))
+								processBlock(e);
+
+							if (addedNode.classList.contains('mb-1'))
+								processBlock(addedNode);
+						}
+			})).observe(
+				friendCE,
+				{ childList: true, subtree: true },
+			);
+
+
+		}, DOM_POLLING_INTERVAL);
+	}
+
+	{
+		let retryCount = 0;
+		const polling = setInterval(() => {
+			const cardTitleEs = document.querySelectorAll('h2.card-title');
+			if (cardTitleEs.length < 2) {
+				if (DOM_POLLING_RETRY <= ++retryCount)
+					clearInterval(polling);
+				return;
+			}
+			clearInterval(polling);
+
+			const uid = getUid(location.href);
+			if (!uid) return;
+
+			for (const e of cardTitleEs) {
+				const spanE = document.createElement('span');
+				spanE.textContent = ' by ';
+
+				const aE = document.createElement('a');
+				aE.href = getUserPageURI(uid);
+				aE.textContent = 'loading...';
+
+				spanE.appendChild(aE);
+
+				e.appendChild(spanE);
+
+				getDispName(uid, (dispName) => {
+					aE.textContent = dispName;
+				});
+			}
+		}, DOM_POLLING_INTERVAL);
+	}
+
 })();
 
