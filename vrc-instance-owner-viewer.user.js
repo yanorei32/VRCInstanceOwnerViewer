@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		VRChat Instance Owner Viewer
 // @description	VRChat Instance page improve (UserScript)
-// @version		0.2.0
+// @version		0.3.0
 // @match		https://vrchat.com/home*
 // @website		https://github.com/Yanorei32/VRCInstanceOwnerViewer
 // @namespace	http://yano.teamfruit.net/~rei/
@@ -76,7 +76,7 @@
 			const locationTitleE = e.querySelector('h6.location-title');
 			if (!locationTitleE) return;
 			clearInterval(polling);
-			
+
 			const worldLinkE = locationTitleE.getElementsByTagName('a')[0];
 			const uid = getUid(worldLinkE.href);
 			if (!uid) return;
@@ -104,7 +104,7 @@
 
 		for (const e of locsE.querySelectorAll('div.mb-1'))
 			processBlock(e);
-		
+
 		(new MutationObserver((records) => {
 			for (const record of records)
 				for (const addedNode of record.addedNodes)
@@ -121,80 +121,92 @@
 		);
 	};
 
-	{
-		let retryCount = 0;
-		const polling = setInterval(() => {
-			const homeCE = document.querySelector('div.home-content');
-			if (!homeCE) {
-				if (DOM_POLLING_RETRY <= ++retryCount)
-					clearInterval(polling);
-				return;
-			}
-			clearInterval(polling);
+	const spaloggedin = () => {
+		{
+			let retryCount = 0;
+			const polling = setInterval(() => {
+				const homeCE = document.querySelector('div.home-content');
+				if (!homeCE) {
+					if (DOM_POLLING_RETRY <= ++retryCount)
+						clearInterval(polling);
+					return;
+				}
+				clearInterval(polling);
 
-			{
-				let retryCount = 0;
-				const polling = setInterval(() => {
-					const locContE = homeCE.querySelector('div.location-container');
-					if (!locContE) {
-						if (DOM_POLLING_RETRY <= ++retryCount)
-							clearInterval(polling);
-						return;
-					}
-					observeLocContE(locContE);
-					clearInterval(polling);
-				}, DOM_POLLING_INTERVAL);
-			}
-
-
-			(new MutationObserver((records) => {
-				for (const record of records)
-					for (const addedNode of record.addedNodes)
-						if (addedNode.nodeType == Node.ELEMENT_NODE) {
-							const locContE = addedNode.querySelector('div.location-container');
-							if (!locContE) return;
-
-							observeLocContE(locContE);
+				{
+					let retryCount = 0;
+					const polling = setInterval(() => {
+						const locContE = homeCE.querySelector('div.location-container');
+						if (!locContE) {
+							if (DOM_POLLING_RETRY <= ++retryCount)
+								clearInterval(polling);
+							return;
 						}
-			})).observe(
-				homeCE,
-				{ childList: true },
-			);
-		}, DOM_POLLING_INTERVAL);
-	}
-
-	{
-		let retryCount = 0;
-		const polling = setInterval(() => {
-			const friendCE = document.querySelector('div.friend-container');
-			if (!friendCE) {
-				if (DOM_POLLING_RETRY <= ++retryCount)
-					clearInterval(polling);
-				return;
-			}
-			clearInterval(polling);
-
-			for (const e of friendCE.querySelectorAll('div.mb-1'))
-				processBlock(e);
-
-			(new MutationObserver((records) => {
-				for (const record of records)
-					for (const addedNode of record.addedNodes)
-						if (addedNode.nodeType == Node.ELEMENT_NODE) {
-							for (const e of addedNode.querySelectorAll('div.mb-1'))
-								processBlock(e);
-
-							if (addedNode.classList.contains('mb-1'))
-								processBlock(addedNode);
-						}
-			})).observe(
-				friendCE,
-				{ childList: true, subtree: true },
-			);
+						observeLocContE(locContE);
+						clearInterval(polling);
+					}, DOM_POLLING_INTERVAL);
+				}
 
 
-		}, DOM_POLLING_INTERVAL);
-	}
+				(new MutationObserver((records) => {
+					for (const record of records)
+						for (const addedNode of record.addedNodes)
+							if (addedNode.nodeType == Node.ELEMENT_NODE) {
+								const locContE = addedNode.querySelector('div.location-container');
+								if (!locContE) return;
+
+								observeLocContE(locContE);
+							}
+				})).observe(
+					homeCE,
+					{ childList: true },
+				);
+			}, DOM_POLLING_INTERVAL);
+		}
+
+		{
+			let retryCount = 0;
+			const polling = setInterval(() => {
+				const friendCE = document.querySelector('div.friend-container');
+				if (!friendCE) {
+					if (DOM_POLLING_RETRY <= ++retryCount)
+						clearInterval(polling);
+					return;
+				}
+				clearInterval(polling);
+
+				for (const e of friendCE.querySelectorAll('div.mb-1'))
+					processBlock(e);
+
+				(new MutationObserver((records) => {
+					for (const record of records)
+						for (const addedNode of record.addedNodes)
+							if (addedNode.nodeType == Node.ELEMENT_NODE) {
+								for (const e of addedNode.querySelectorAll('div.mb-1'))
+									processBlock(e);
+
+								if (addedNode.classList.contains('mb-1'))
+									processBlock(addedNode);
+							}
+				})).observe(
+					friendCE,
+					{ childList: true, subtree: true },
+				);
+
+
+			}, DOM_POLLING_INTERVAL);
+		}
+	};
+
+	spaloggedin();
+	setTimeout(() => {
+	(new MutationObserver((records) => {
+		spaloggedin();
+	})).observe(
+		document.querySelector('div#app>div>main'),
+		{ childList: true, attributes: true, characterData: true },
+	);
+	}, DOM_POLLING_INTERVAL*20);
 
 	{
 		let retryCount = 0;
