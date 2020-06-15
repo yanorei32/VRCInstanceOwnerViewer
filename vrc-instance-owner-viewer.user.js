@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		VRChat Instance Owner Viewer
 // @description	VRChat Instance page improve (UserScript)
-// @version		0.3.0
+// @version		0.3.1
 // @match		https://vrchat.com/home*
 // @website		https://github.com/Yanorei32/VRCInstanceOwnerViewer
 // @namespace	http://yano.teamfruit.net/~rei/
@@ -200,12 +200,12 @@
 
 	spaloggedin();
 	setTimeout(() => {
-	(new MutationObserver((records) => {
-		spaloggedin();
-	})).observe(
-		document.querySelector('div#app>div>main'),
-		{ childList: true, attributes: true, characterData: true },
-	);
+		(new MutationObserver((records) => {
+			spaloggedin();
+		})).observe(
+			document.querySelector('div#app>div>main'),
+			{ childList: true, attributes: true, characterData: true },
+		);
 	}, DOM_POLLING_INTERVAL*20);
 
 	{
