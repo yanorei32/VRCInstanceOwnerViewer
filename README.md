@@ -16,5 +16,8 @@ Show ` BY [SCREEN NAME]` to `https://vrchat.com/home*` pages.
 ### Friends View
 ![image](https://user-images.githubusercontent.com/11992915/77686296-9e4e5c80-6f94-11ea-97d6-0c50f8dfd61d.png)
 
+### Friend View
+![image](https://user-images.githubusercontent.com/11992915/85956084-2beb7f00-b9be-11ea-822d-08be325ecc0f.png)
+
 ### Instance View
 ![image](https://user-images.githubusercontent.com/11992915/77686508-f9804f00-6f94-11ea-9f0f-4f646f807ca3.png)
