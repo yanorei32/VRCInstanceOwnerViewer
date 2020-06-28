@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		VRChat Instance Owner Viewer
 // @description	VRChat Instance page improve (UserScript)
-// @version		0.3.2
+// @version		0.4.0
 // @match		https://vrchat.com/home*
 // @website		https://github.com/Yanorei32/VRCInstanceOwnerViewer
 // @namespace	http://yano.teamfruit.net/~rei/
@@ -136,14 +136,22 @@
 				{
 					let retryCount = 0;
 					const polling = setInterval(() => {
+                        // friend locations
 						const locContE = homeCE.querySelector('div.location-container');
-						if (!locContE) {
-							if (DOM_POLLING_RETRY <= ++retryCount)
-								clearInterval(polling);
-							return;
+						if (locContE) {
+                            observeLocContE(locContE);
+                            clearInterval(polling);
+                            return;
 						}
-						observeLocContE(locContE);
-						clearInterval(polling);
+                        const friendViewLocationTitleE = homeCE.querySelector('div>div>div>div>div>div.usercard>div>div>div.location-card>div');
+                        if (friendViewLocationTitleE) {
+                            processBlock(friendViewLocationTitleE);
+                            clearInterval(polling);
+                            return;
+                        }
+                        if (DOM_POLLING_RETRY <= ++retryCount)
+                            clearInterval(polling);
+                        return;
 					}, DOM_POLLING_INTERVAL);
 				}
 
@@ -152,10 +160,19 @@
 					for (const record of records)
 						for (const addedNode of record.addedNodes)
 							if (addedNode.nodeType == Node.ELEMENT_NODE) {
+                                // friend locations
 								const locContE = addedNode.querySelector('div.location-container');
-								if (!locContE) return;
-
-								observeLocContE(locContE);
+								if (locContE) {
+                                    observeLocContE(locContE);
+                                    return;
+                                }
+                                // firend
+                                const friendViewLocationTitleE = addedNode.querySelector('div>div>div>div>div>div.usercard>div>div>div.location-card>div');
+                                if (friendViewLocationTitleE) {
+                                    processBlock(friendViewLocationTitleE);
+                                    return;
+                                }
+                                return;
 							}
 				})).observe(
 					homeCE,
