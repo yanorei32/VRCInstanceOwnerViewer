@@ -138,22 +138,22 @@
 				{
 					let retryCount = 0;
 					const polling = setInterval(() => {
-                        // friend locations
+						// friend locations
 						const locContE = homeCE.querySelector('div.location-container');
 						if (locContE) {
-                            observeLocContE(locContE);
-                            clearInterval(polling);
-                            return;
+							observeLocContE(locContE);
+							clearInterval(polling);
+							return;
 						}
-                        const friendViewLocationTitleE = homeCE.querySelector('div>div>div>div>div>div.usercard>div>div>div.location-card>div');
-                        if (friendViewLocationTitleE) {
-                            processBlock(friendViewLocationTitleE);
-                            clearInterval(polling);
-                            return;
-                        }
-                        if (DOM_POLLING_RETRY <= ++retryCount)
-                            clearInterval(polling);
-                        return;
+						const friendViewLocationTitleE = homeCE.querySelector('div>div>div>div>div>div.usercard>div>div>div.location-card>div');
+						if (friendViewLocationTitleE) {
+							processBlock(friendViewLocationTitleE);
+							clearInterval(polling);
+							return;
+						}
+						if (DOM_POLLING_RETRY <= ++retryCount)
+							clearInterval(polling);
+						return;
 					}, DOM_POLLING_INTERVAL);
 				}
 
@@ -162,19 +162,19 @@
 					for (const record of records)
 						for (const addedNode of record.addedNodes)
 							if (addedNode.nodeType == Node.ELEMENT_NODE) {
-                                // friend locations
+								// friend locations
 								const locContE = addedNode.querySelector('div.location-container');
 								if (locContE) {
-                                    observeLocContE(locContE);
-                                    return;
-                                }
-                                // firend
-                                const friendViewLocationTitleE = addedNode.querySelector('div>div>div>div>div>div.usercard>div>div>div.location-card>div');
-                                if (friendViewLocationTitleE) {
-                                    processBlock(friendViewLocationTitleE);
-                                    return;
-                                }
-                                return;
+									observeLocContE(locContE);
+									return;
+								}
+								// firend
+								const friendViewLocationTitleE = addedNode.querySelector('div>div>div>div>div>div.usercard>div>div>div.location-card>div');
+								if (friendViewLocationTitleE) {
+									processBlock(friendViewLocationTitleE);
+									return;
+								}
+								return;
 							}
 				})).observe(
 					homeCE,
