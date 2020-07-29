@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name		VRChat Instance Owner Viewer
 // @description	VRChat Instance page improve (UserScript)
-// @version		0.4.0
+// @version		0.5.0
 // @match		https://vrchat.com/home*
 // @match		https://api.vrchat.com/home*
 // @match		https://api.vrchat.cloud/home*
