@@ -55,7 +55,7 @@
 			cb(dispNameCache[uid]);
 		});
 
-		req.open('GET', `https://vrchat.com/api/1/users/${uid}?apiKey=${APIKEY}`);
+		req.open('GET', `/api/1/users/${uid}?apiKey=${APIKEY}`);
 		req.send();
 	};
 
@@ -64,7 +64,7 @@
 	};
 
 	const getUserPageURI = (uid) => {
-		return `https://vrchat.com/home/user/${uid}`;
+		return `/home/user/${uid}`;
 	};
 
 	const processedE = new WeakMap();
