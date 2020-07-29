@@ -3,7 +3,7 @@
 // @description	VRChat Instance page improve (UserScript)
 // @version		0.5.0
 // @match		https://vrchat.com/home*
-// @match		https://api.vrchat.com/home*
+// @match		https://www.vrchat.com/home*
 // @match		https://api.vrchat.cloud/home*
 // @website		https://github.com/Yanorei32/VRCInstanceOwnerViewer
 // @namespace	http://yano.teamfruit.net/~rei/
