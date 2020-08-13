@@ -1,13 +1,13 @@
 // ==UserScript==
 // @name		VRChat Instance Owner Viewer
 // @description	VRChat Instance page improve (UserScript)
-// @version		0.5.1
+// @version		0.5.2
 // @match		https://vrchat.com/home*
 // @match		https://www.vrchat.com/home*
 // @match		https://api.vrchat.cloud/home*
 // @website		https://github.com/Yanorei32/VRCInstanceOwnerViewer
 // @namespace	http://yano.teamfruit.net/~rei/
-// @updateURL	https://github.com/Yanorei32/VRCInstanceOwnerViewer/vrc-instance-owner-viewer.user.js
+// @updateURL	https://github.com/Yanorei32/VRCInstanceOwnerViewer/raw/master/vrc-instance-owner-viewer.user.js
 // @license		MIT License
 // @grant		none
 // ==/UserScript==
